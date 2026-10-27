@@ -1,0 +1,8 @@
+# Base dependencies for local GUI and video
+numpy>=1.26,<3
+opencv-python>=4.9,<5
+Pillow>=10,<13
+# Optional for Windows PC spoken alerts; falls back to a system sound
+pyttsx3>=2.90,<3
+# Installs PyTorch and downloads pre-trained weights at first real connection
+ultralytics>=8.3,<9

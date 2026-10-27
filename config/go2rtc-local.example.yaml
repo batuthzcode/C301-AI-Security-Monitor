@@ -1,0 +1,12 @@
+# Example config for Windows. Copy to a PRIVATE go2rtc.yaml BEFORE logging in.
+# Go2rtc WebUI -> Add -> Xiaomi will save account tokens in go2rtc.yaml.
+# Do NOT ever commit or upload the resulting file.
+api:
+  listen: "127.0.0.1:1984"
+rtsp:
+  listen: "127.0.0.1:8554"
+# Direct camera preview by go2rtc may require WebRTC; intentionally
+# not enabled for this first RTSP-only Python workflow.
+webrtc:
+  listen: ""
+streams: {}

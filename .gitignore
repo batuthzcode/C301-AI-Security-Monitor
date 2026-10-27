@@ -1,0 +1,25 @@
+# Local account tokens, keys, and Xiaomi go2rtc configuration
+config/go2rtc.yaml
+go2rtc.yaml
+*.env
+.env*
+!*.env.example
+# Camera stills/videos/events MUST NEVER be committed
+private_data/
+*.mp4
+*.avi
+*.mov
+*.mkv
+# Model weights
+*.pt
+*.onnx
+# Python / editor
+__pycache__/
+*.py[cod]
+.venv/
+.vscode/
+.idea/
+.pytest_cache/
+# OS
+Thumbs.db
+.DS_Store
