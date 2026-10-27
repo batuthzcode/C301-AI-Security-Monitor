@@ -3,3 +3,5 @@ requests>=2.31,<3
 pyttsx3>=2.90,<3
 sounddevice>=0.5,<1
 faster-whisper>=1.1,<2
+# Current camera-speaker experiment uses online Google TTS.
+gTTS>=2.5,<3

@@ -1,5 +1,96 @@
 # C301 AI Security Monitor
 
+## Güncel durum: v0.5.0-experimental
+
+Xiaomi Smart Camera C301 görüntüsünü Windows bilgisayarda yerel olarak işleyen;
+YOLO ile nesne algılayan, olay kaydı tutan ve deneysel **Ti** sesli asistanını
+çalıştıran bir prototiptir.
+
+Güncel kod şunları içerir:
+
+- C301/go2rtc yerel RTSP görüntüsü, Tkinter arayüzü ve YOLO11n nesne algılama.
+- En-son-kare mimarisi, yerel JPEG/JSONL olay kaydı ve kişi mevcudiyeti kapısı.
+- FFmpeg tabanlı düşük tamponlu görüntüleme ve gecikme teşhisi.
+- Kamera mikrofonu → faster-whisper → Türkçe Ti komut motoru.
+- Deneysel go2rtc ses geri kanalıyla C301 hoparlöründen yanıt verme.
+- Opt-in tek kişi görsel merkezleme ve **varsayılan olarak kapalı**, fiziksel
+  C301 üzerinde doğrulanmamış PTZ motor kodu.
+
+Bu proje yüz tanıma yapmaz, kişilerin kimliğini belirlemez, fiziksel mesafe ölçen
+bir radar değildir ve tek mikrofon akışından sesin yönünü tespit ettiğini iddia
+etmez.
+
+| Bileşen | Durum |
+|---|---|
+| Sentetik demo ve donanımsız testler | Doğrulandı |
+| C301 → go2rtc → Python canlı görüntü | Kullanıcı tarafından görüldü |
+| YOLO ve yerel olay kaydı | Kodlandı; gerçek ortam kalibrasyonu gerekli |
+| Ti komut ayrıştırma | Kodlandı ve test edildi |
+| Kamera mikrofonu/hoparlörü | Deneysel; yerel ses köprüsü gerekli |
+| Görsel takip | Deneysel |
+| PTZ motor hareketi | **Doğrulanmadı; varsayılan kapalı** |
+
+### Mimari
+
+```text
+C301 ──► go2rtc ──► FFmpeg/OpenCV ──► YOLO ──► GUI + yerel olaylar
+  │          │
+  │          └── ses geri kanal ◄── gTTS ◄── Ti yanıtı
+  └── mikrofon ──► PCM ──► Whisper ──► Ti komut motoru
+```
+
+### Güncel hızlı başlangıç
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe main.py --demo
+```
+
+Yerel C301 akışı hazırsa:
+
+```powershell
+$env:OPENCV_FFMPEG_CAPTURE_OPTIONS = 'rtsp_transport;tcp'
+.\.venv\Scripts\python.exe main.py --source 'rtsp://127.0.0.1:8554/c301_h264'
+```
+
+Ti için:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-voice.txt
+.\.venv\Scripts\python.exe ti_assistant.py --mic-test 8
+.\.venv\Scripts\python.exe ti_assistant.py --model small --threshold 220
+```
+
+İlk kez `Merhaba Ti` denir. Sonra `Ti, saat kaç?`, `Ti, nasılsın?` ve
+`Ti, sistem durumu ne?` gibi komutlar kullanılabilir. `--enable-motor` normal
+kullanım için önerilmez; stok go2rtc'de bulunmayan deneysel bir yerel uç noktaya
+bağlıdır.
+
+### Baştan bugüne ne yaptık?
+
+İlk dört etiket 26 Ekim 2026 tarihli yerel ZIP paketlerinden yeniden oluşturuldu:
+
+- `v0.1.0`: ilk GUI, YOLO, 2B görünüm ve yerel olay kayıtları.
+- `v0.1.1`: yakalama ve çıkarımı ayıran en-son-kare mimarisi.
+- `v0.1.2`: `--preview-only` gecikme izolasyonu.
+- `v0.2.0-preview`: Türkçe ses/hava yardımcısı.
+- `v0.5.0-experimental`: kamera sesi, Ti oturumu, kişi takibi ve kapalı
+  varsayılan deneysel PTZ kodunun konsolidasyonu.
+
+Tüm adımlar: [Geliştirme geçmişi](docs/HISTORY_TR.md) ·
+[Mimari](docs/ARCHITECTURE.md) · [Yol haritası](docs/ROADMAP.md) ·
+[Güvenlik](docs/SECURITY.md)
+
+Gerçek `go2rtc.yaml`, Xiaomi hesabı/token'ı, cihaz kimliği, LAN bilgileri,
+kamera görüntüleri, ses kayıtları, model ağırlıkları ve binary dosyalar bu depoya
+konmaz. gTTS kullanıldığında söylenecek metin dış TTS hizmetine gider.
+
+---
+
+## Arşivden gelen v0.2.0 öncesi ayrıntılı notlar
+
 **A Windows-first, local-first computer vision companion for Xiaomi Smart Camera C301.**
 
 > **Status: v0.1.2 latency diagnostics experiment / early prototype.** The program and demo code are written;

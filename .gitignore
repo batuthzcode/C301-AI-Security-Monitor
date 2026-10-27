@@ -6,6 +6,15 @@ go2rtc.yaml
 !*.env.example
 # Camera stills/videos/events MUST NEVER be committed
 private_data/
+_voice_test/
+ti_mikrofon_test.wav
+*.wav
+*.mp3
+# Local binaries, archives, logs and private go2rtc backups
+*.exe
+*.zip
+*.log
+go2rtc.yaml.*
 *.mp4
 *.avi
 *.mov
@@ -20,6 +29,8 @@ __pycache__/
 .vscode/
 .idea/
 .pytest_cache/
+.coverage
+htmlcov/
 # OS
 Thumbs.db
 .DS_Store

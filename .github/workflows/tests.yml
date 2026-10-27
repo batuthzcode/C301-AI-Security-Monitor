@@ -10,5 +10,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run pure Python event logic tests
-        run: python -m unittest discover -s tests -p test_events.py -v
+      - name: Install lightweight test dependencies
+        run: >-
+          python -m pip install "numpy>=1.26,<3" "opencv-python-headless>=4.9,<5"
+          "requests>=2.31,<3"
+      - name: Compile Python sources
+        run: python -m compileall -q .
+      - name: Run hardware-independent unit tests
+        run: python -m unittest discover -s tests -v

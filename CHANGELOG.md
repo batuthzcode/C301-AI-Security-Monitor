@@ -1,3 +1,20 @@
+# Changelog
+
+## 0.5.0-experimental — 2026-10-27
+
+- Reconstructed v0.1.0, v0.1.1, v0.1.2 and v0.2.0-preview history from local archives.
+- Consolidated current low-buffer FFmpeg preview and person-presence logic.
+- Added C301 camera-speaker bridge and Ti camera-microphone assistant.
+- Preserved Ti v0.1–v0.3 sources under `legacy/ti/`; v0.4 artifact was not recovered.
+- Added Ti session wake/follow-up behavior and Turkish command tests.
+- Added opt-in single-person visual centering.
+- Preserved experimental PTZ installer separately; motor support remains disabled by default and unverified on physical C301.
+- Added Turkish project history, architecture, security checklist and updated roadmap.
+- Excluded private camera data, audio tests, credentials, binaries and model weights.
+- Full hardware-independent suite passes in the existing project environment (24 tests).
+
+---
+
 ## v0.1.2 / 2026-10-26 — Latency isolation experiment
 - User reports ~3-second video delay despite working real feed.
 - Added `--preview-only` mode to disable YOLO analysis and event recording while leaving live preview functional.

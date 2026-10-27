@@ -12,6 +12,7 @@ import time
 
 from .demo import make_demo_frame
 from .detection import EventGate, unpack_yolo
+from .person_presence import PersonPresenceGate
 from .records import EventRecorder
 from .video import LatestFrameBuffer
 
@@ -39,12 +40,16 @@ class CameraWorker:
         self._predictions_at = 0.0
         self._pred_lock = threading.Lock()
         self._gate = EventGate()
+        self._presence_gate = PersonPresenceGate(confirmations=2, absence_seconds=8.0)
 
     def start(self):
         self.thread.start()
 
     def stop(self):
         self.stopped.set()
+        pipe = getattr(self, "_active_pipe", None)
+        if pipe is not None:
+            pipe.release()
 
     def save_manual(self):
         _sequence, latest = self._latest.snapshot()
@@ -73,6 +78,8 @@ class CameraWorker:
 
     def _observe(self, frame, predictions, now, *, demo=False):
         filtered = [d for d in predictions if not self.person_only or d.name == "person"]
+        if self._presence_gate.observe(any(d.name == "person" for d in filtered), now):
+            self._emit(("person_entered", "demo" if demo else "live"))
         for det in self._gate.observe(filtered, now):
             event = self.recorder.save(frame, det.name, det.confidence,
                                        "demo" if demo else "live")
@@ -133,7 +140,9 @@ class CameraWorker:
         source = int(self.source) if self.source.isdecimal() else self.source
         if str(self.source).startswith("rtsp://"):
             os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
-        cap = cv2.VideoCapture(source)
+        use_pipe = os.environ.get("C301_FFMPEG_PIPE") == "1" and str(self.source).startswith("rtsp://")
+        cap = FFmpegPipeCapture(self.source) if use_pipe else cv2.VideoCapture(source)
+        self._active_pipe = cap if use_pipe else None
         # For FFMPEG, this property might not be honored; our continuously
         # draining reader thread handles most decoder backlog in practice.
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -163,9 +172,13 @@ class CameraWorker:
                 # YOLO reads a stable snapshot while the camera reader continues.
                 processed_seq = seq
                 last_infer_start = time.monotonic()
-                result = model.predict(frame.copy(), conf=self.confidence,
-                                       imgsz=self.inference_size, device=self.device,
-                                       verbose=False)[0]
+                tracking = os.environ.get('C301_TRACK') == '1'
+                method = model.track if tracking else model.predict
+                opts = dict(conf=self.confidence, imgsz=self.inference_size,
+                            device=self.device, verbose=False)
+                if tracking:
+                    opts.update(persist=True, tracker='bytetrack.yaml')
+                result = method(frame.copy(), **opts)[0]
                 predictions = unpack_yolo(result)
                 with self._pred_lock:
                     self._predictions = predictions
@@ -187,3 +200,70 @@ class CameraWorker:
             self.stopped.set()
             self._emit(("status", "Bağlantı kapalı"))
             self._emit(("ended",))
+
+
+class FFmpegPipeCapture:
+    def __init__(self, url):
+        import subprocess
+        import shutil
+        import numpy as np
+        from latency_probe_ffmpeg import ffmpeg_command
+
+        binary = shutil.which("ffmpeg")
+        if binary is None:
+            raise RuntimeError("FFmpeg bulunamadi")
+
+        self.np = np
+        self.subprocess = subprocess
+        self.size = 960 * 540 * 3
+        self.closed = False
+
+        self.process = subprocess.Popen(
+            ffmpeg_command(binary, url, 960, 540),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            bufsize=self.size
+        )
+
+    def isOpened(self):
+        return not self.closed and self.process.poll() is None
+
+    def set(self, prop, value):
+        return False
+
+    def read(self):
+        if self.closed:
+            return False, None
+
+        try:
+            data = self.process.stdout.read(self.size)
+        except (OSError, ValueError):
+            return False, None
+
+        if len(data) != self.size:
+            return False, None
+
+        frame = self.np.frombuffer(
+            data, dtype=self.np.uint8
+        ).reshape(540, 960, 3).copy()
+
+        return True, frame
+
+    def release(self):
+        if self.closed:
+            return
+
+        self.closed = True
+
+        if self.process.poll() is None:
+            self.process.terminate()
+
+        try:
+            self.process.wait(timeout=2)
+        except self.subprocess.TimeoutExpired:
+            self.process.kill()
+            self.process.wait(timeout=2)
+
+        if self.process.stdout is not None:
+            self.process.stdout.close()

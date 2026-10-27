@@ -15,6 +15,7 @@ class Detection:
     y1: int
     x2: int
     y2: int
+    track_id: int | None = None
 
     @property
     def center(self) -> tuple[float, float]:
@@ -62,5 +63,8 @@ def unpack_yolo(result) -> list[Detection]:
         class_id = int(box.cls[0].item())
         score = float(box.conf[0].item())
         x1, y1, x2, y2 = (int(v) for v in box.xyxy[0].tolist())
-        detections.append(Detection(str(result.names[class_id]), score, x1, y1, x2, y2))
+        tid = getattr(box, 'id', None)
+        track_id = int(tid[0].item()) if tid is not None else None
+        detections.append(Detection(str(result.names[class_id]), score,
+                                    x1, y1, x2, y2, track_id))
     return detections

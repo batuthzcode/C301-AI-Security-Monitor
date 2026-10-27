@@ -1,5 +1,6 @@
 """Dark local-first Windows dashboard for Xiaomi C301 proof-of-concept."""
 import argparse
+import os
 import queue
 import tkinter as tk
 from pathlib import Path
@@ -12,6 +13,7 @@ from PIL import Image, ImageTk
 from .detection import Detection
 from .records import EventRecorder
 from .speech import PCSpeaker
+from .camera_voice_adapter import C301CameraVoice
 from .worker import CameraWorker
 
 BG = "#101820"
@@ -37,7 +39,10 @@ class MonitorApp:
         self.recorder = EventRecorder(Path(options.data_dir))
         self.messages: queue.Queue = queue.Queue(maxsize=20)
         self.worker: CameraWorker | None = None
-        self.speaker = PCSpeaker()
+        self.camera_voice_mode = os.environ.get('C301_CAMERA_VOICE') == '1'
+        self.smart_person_mode = (self.camera_voice_mode and
+                                  os.environ.get('C301_SMART_PERSON', '1') == '1')
+        self.speaker = C301CameraVoice() if self.camera_voice_mode else PCSpeaker()
         self.running = False
         self.last_photo = None
         self.last_detections: list[Detection] = []
@@ -120,7 +125,7 @@ class MonitorApp:
         self.radar.pack(fill="x", expand=False)
         self.radar.bind("<Configure>", lambda _e: self._draw_radar())
         self.voice_var = tk.BooleanVar(value=not self.options.mute)
-        tk.Checkbutton(right, text="PC'den kişi algılama sesli uyarısı", variable=self.voice_var,
+        tk.Checkbutton(right, text=("Kameradan kişi algılama sesli uyarısı" if self.camera_voice_mode else "PC'den kişi algılama sesli uyarısı"), variable=self.voice_var,
                        fg=FG, bg=PANEL, selectcolor="#304357", activebackground=PANEL,
                        activeforeground=FG).pack(anchor="w", pady=(16, 5))
         self.only_people = tk.BooleanVar(value=self.options.person_only)
@@ -197,8 +202,14 @@ class MonitorApp:
                     self.event_list.insert(0, f"{local_time}  |  {friendly_name(event['label'])}  |  {event['mode']}")
                     if self.event_list.size() > 60:
                         self.event_list.delete(60, tk.END)
-                    if event["label"] == "person" and self.voice_var.get() and event["kind"] == "detection":
-                        self.speaker.say("Dikkat. Odada bir kişi algılandı.")
+                    if (event["label"] == "person" and self.voice_var.get() and
+                            event["kind"] == "detection" and not self.smart_person_mode):
+                        if not self.camera_voice_mode or event["mode"] == "live":
+                            self.speaker.say("Dikkat. Odada bir kişi algılandı.")
+                elif kind == "person_entered":
+                    if (self.smart_person_mode and self.voice_var.get() and
+                            self.running and msg[1] == "live"):
+                        self.speaker.person_entered("Dikkat. Odada bir kişi algılandı.")
                 elif kind == "ended":
                     self.running = False
                     self.worker = None
@@ -220,6 +231,10 @@ class MonitorApp:
         frame = self.raw_frame.copy()
         for d in self.last_detections:
             cv2.rectangle(frame, (d.x1, d.y1), (d.x2, d.y2), (90, 220, 80), 2)
+            if getattr(d, 'track_id', None) is not None:
+                cv2.putText(frame, f'ID {d.track_id}',
+                            (max(0,d.x1), min(frame.shape[0]-8,d.y2+22)),
+                            cv2.FONT_HERSHEY_SIMPLEX, .6, (0,215,255), 2)
             cv2.putText(frame, f"{friendly_name(d.name).replace('ş', 's').replace('ı', 'i').replace('ü', 'u').replace('ö', 'o').replace('ğ', 'g').replace('ç', 'c')} {d.confidence:.0%}",
                         (max(0, d.x1), max(24, d.y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX,
                         .55, (90, 220, 80), 2)
