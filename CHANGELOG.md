@@ -91,3 +91,14 @@
 - Added latest-frame unit tests and rollback instructions.
 - No Xiaomi firmware or go2rtc private configuration changes.
 - End-to-end latency improvement awaits user testing on C301 hardware.
+
+### 2026-10-26 — Milestone 021 diagnostic note (no app changes)
+- Recorded user report that low-latency `--preview-only` mode increased delay.
+- Added FFplay low-buffer independent comparison to distinguish upstream transcoding latency from Python/OpenCV latency.
+- Current v0.1.2 source unchanged; no latency fix yet established.
+
+### v0.2.0-preview — Voice + weather assistant companion (2026-10-26)
+
+- Added optional CPU/local Turkish speech recognition, PC text-to-speech and Open-Meteo city weather answers via separate `voice_assistant.py`.
+- Added text-first smoke test, additional unit tests, `requirements-voice.txt` and documentation.
+- Camera monitoring pipeline unchanged; this is **not yet embedded** in the GUI or camera speaker.

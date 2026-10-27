@@ -249,3 +249,15 @@ The camera firmware and private go2rtc YAML are not changed.
 
 To roll back, restore the previously working v0.1.0 project files; keep your
 `.venv` directory. Never upload a real go2rtc YAML or tokens to GitHub.
+
+
+## Optional: Turkish voice/weather companion (v0.2.0 preview)
+
+Voice/weather is an independent **PC microphone and PC speaker** companion, not yet integrated as a dashboard button. No Xiaomi firmware changes. See [Voice Assistant Setup](docs/VOICE_ASSISTANT.md). Quick text-only test (in project folder, after voice dependencies are installed):
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-voice.txt
+.\.venv\Scripts\python.exe voice_assistant.py --text "Ankara hava nasıl?" --city Ankara --mute
+```
+
+To record a spoken question on demand: `voice_assistant.py --listen --city Ankara`. A full general chat assistant is **not yet implemented**.

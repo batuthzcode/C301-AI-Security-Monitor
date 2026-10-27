@@ -230,3 +230,30 @@ Next step:
 - Updated docs, changelog and added tests.
 - No Xiaomi firmware or private go2rtc configuration changed.
 - Success/failure and latency improvement **not yet confirmed** on the user's PC.
+
+## 2026-10-26 — Milestone 021: Preview-only latency increased (open investigation)
+
+- **Observed by user:** AI Security Monitor in live mode had around three seconds of motion-to-screen delay; with v0.1.2 `--preview-only` (YOLO disabled), delay **increased further**.
+- **Inference:** YOLO compute alone cannot explain the perceived delay. Do not claim the preview-only setting as a latency fix.
+- **Potential layers:** Xiaomi CS2 source timing, H.265 to H.264 FFmpeg transcoding, RTSP buffering and OpenCV decode/reader backlog, Windows PC load, live playback contention. These are hypotheses, not confirmed causes.
+- **Software review:** v0.1.2 already drains OpenCV in a thread and displays the newest queued frame, but `VideoCapture(...).read()` can still decode backlogged data, and `CAP_PROP_BUFFERSIZE=1` may not be honored by FFmpeg.
+- **Next diagnostic:** stop AI Monitor and other viewers; keep go2rtc running; play only the known-good transcoded `c301_h264` with:
+
+```powershell
+ffplay -fflags nobuffer -flags low_delay -framedrop -rtsp_transport tcp -an "rtsp://127.0.0.1:8554/c301_h264"
+```
+
+- Compare hand-wave lag: if FFplay is fast but Python is slow, investigate OpenCV capture buffering. If FFplay is slow too, inspect go2rtc-to-FFmpeg pipeline before making code changes.
+- **No changes** to camera firmware, go2rtc YAML, original v0.1.0 release, or Python source. No personal camera connection data recorded.
+- **Status:** unresolved; awaiting user observation.
+
+## 2026-10-26 — Milestone 022: Turkish Voice + Live Weather Companion (Preview)
+
+- User confirmed FFplay has about **2-second** delay, better than approximately **3 seconds** in the Python GUI.
+- Requested future AI assistant features, voice conversation and weather questions.
+- Added separate `voice_assistant.py` entry point and `assistant_core.py`/`assistant_audio.py`.
+- AI: local faster-whisper Turkish speech transcription. Weather: Open-Meteo live queries, no stored readings or invented data.
+- User-triggered microphone recording only, and Windows PC voice response; Xiaomi firmware and built-in microphone/speaker unchanged.
+- `docs/VOICE_ASSISTANT.md` documents setup, privacy, and limitations.
+- Camera event history voice commands and GUI embedding deliberately deferred.
+- Real hardware voice/microphone/weather integration **not yet user-tested**. Existing working v0.1.2 stream pipeline **untouched**.
