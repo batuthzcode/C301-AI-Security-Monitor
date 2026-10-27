@@ -7,7 +7,7 @@ physical Xiaomi C301 until it has been tested on the user's device.
 |---|---|---|
 | 0 | Research C301/go2rtc stream integration | Documented, integration untested |
 | 1 | Local Windows GUI with RTSP/webcam/video inputs | Implemented, physical camera untested |
-| 1 | Synthetic demo, bounding boxes, 2D visualization | Implemented; real UI validation pending |
+| 1 | Synthetic demo, bounding boxes, 2D visualization | Windows demo UI confirmed by user screenshot; actual camera pending |
 | 1 | Local JSONL events and saved snapshots | Implemented; end-to-end validation pending |
 | 1 | PC speaker spoken alerts | Implemented with fallback; Windows test pending |
 | 2 | Actual Xiaomi Home login and C301 live-stream verification | Pending user-side test |

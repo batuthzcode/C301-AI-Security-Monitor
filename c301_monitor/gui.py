@@ -44,7 +44,7 @@ class MonitorApp:
         self.frame_size = (960, 540)
         self.event_count = 0
 
-        root.title("C301 AI Security Monitor  |  v0.1.0")
+        root.title("C301 AI Security Monitor  |  v0.1.1")
         root.configure(bg=BG)
         root.geometry("1240x800")
         root.minsize(990, 680)
@@ -62,7 +62,7 @@ class MonitorApp:
         heading.grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 2))
         tk.Label(heading, text="C301  /  AI SECURITY MONITOR", fg=FG, bg=BG,
                  font=("Segoe UI", 20, "bold")).pack(side="left")
-        tk.Label(heading, text="LOCAL-FIRST  ·  v0.1", fg=CYAN, bg=BG,
+        tk.Label(heading, text="LOCAL-FIRST  ·  v0.1.1", fg=CYAN, bg=BG,
                  font=("Consolas", 10, "bold")).pack(side="right")
 
         controls = tk.Frame(self.root, bg=BG)
@@ -153,7 +153,9 @@ class MonitorApp:
         self.worker = CameraWorker(source, self.messages, self.recorder,
                                    demo=demo, confidence=self.options.confidence,
                                    device=self.options.device,
-                                   person_only=False)
+                                   person_only=False,
+                                   inference_size=self.options.imgsz,
+                                   inference_interval=self.options.inference_interval)
         self.running = True
         self.status_var.set("Bağlanıyor...")
         self.worker.start()
@@ -174,18 +176,14 @@ class MonitorApp:
             self._emit_gui_error(str(error))
 
     def _poll(self):
+        freshest = None
         try:
             while True:
                 msg = self.messages.get_nowait()
                 kind = msg[0]
                 if kind == "frame":
-                    self.raw_frame = msg[1]
-                    self.frame_size = (msg[1].shape[1], msg[1].shape[0])
-                    self.last_detections = [x for x in msg[2]
-                                            if not self.only_people.get() or x.name == "person"]
-                    self.count_var.set(f"{len(self.last_detections)} nesne")
-                    self._paint_video()
-                    self._draw_radar()
+                    # Never render 10 old queued frames sequentially.
+                    freshest = msg
                 elif kind == "status":
                     self.status_var.set(msg[1])
                 elif kind == "error":
@@ -205,6 +203,14 @@ class MonitorApp:
                     self.worker = None
         except queue.Empty:
             pass
+        if freshest is not None:
+            self.raw_frame = freshest[1]
+            self.frame_size = (freshest[1].shape[1], freshest[1].shape[0])
+            self.last_detections = [x for x in freshest[2]
+                                    if not self.only_people.get() or x.name == "person"]
+            self.count_var.set(f"{len(self.last_detections)} nesne")
+            self._paint_video()
+            self._draw_radar()
         self.root.after(70, self._poll)
 
     def _paint_video(self):
@@ -261,6 +267,10 @@ def main(argv=None):
                     help="OpenCV input, RTSP stream URL, webcam index (0) or video file")
     ap.add_argument("--demo", action="store_true", help="Synthetic demo without camera/model")
     ap.add_argument("--device", default="cpu", help="Ultralytics inference device: cpu, 0, cuda:0")
+    ap.add_argument("--imgsz", type=int, default=416,
+                    help="YOLO analysis image size; smaller is faster (default: 416)")
+    ap.add_argument("--inference-interval", type=float, default=.45,
+                    help="Minimum seconds between starting YOLO analyses (default: 0.45)")
     ap.add_argument("--confidence", type=float, default=.45)
     ap.add_argument("--person-only", action="store_true")
     ap.add_argument("--mute", action="store_true", help="Start with PC speech disabled")
@@ -268,6 +278,10 @@ def main(argv=None):
     args = ap.parse_args(argv)
     if not (0.05 <= args.confidence <= 1.0):
         ap.error("--confidence must be between 0.05 and 1.0")
+    if not (160 <= args.imgsz <= 1280 and args.imgsz % 32 == 0):
+        ap.error("--imgsz must be a multiple of 32 between 160 and 1280")
+    if not (0.1 <= args.inference_interval <= 10.0):
+        ap.error("--inference-interval must be between 0.1 and 10.0 seconds")
     root = tk.Tk()
     MonitorApp(root, args)
     root.mainloop()

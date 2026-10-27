@@ -2,12 +2,27 @@
 
 **A Windows-first, local-first computer vision companion for Xiaomi Smart Camera C301.**
 
-> **Status: v0.1.0 / early prototype.** The program and demo code are written;
-> a physical Xiaomi C301 connection has **not** been verified by the developer.
+> **Status: v0.1.1 low-latency experiment / early prototype.** The program and demo code are written;
+> real C301 video is **reported working by the user** in go2rtc and the Python dashboard,
+> but sustained playback, YOLO accuracy, and end-to-end latency are not yet validated.
 > The project does **not** modify camera firmware, impersonate a true radar, or
 > identify people by face.
 
 ![Synthetic DEMO dashboard; not a real camera feed](assets/demo-dashboard.png)
+
+**Xiaomi device discovery (26 Oct 2026):** Xiaomi Smart Camera C301 was visible in the go2rtc Xiaomi device loader using the **Singapore** region (Europe did not list it). Live-stream playback in go2rtc and Python was subsequently reported successful; long-term reliability is **not** verified. The actual `xiaomi://` source URL and account details must remain private. See [development journal](docs/DEVLOG.md).
+
+**Windows 11 demo smoke test (26 Oct 2026):** user provided a screenshot
+confirming the simulated dashboard runs. This is not a validated C301 video feed.
+See [Windows demo screenshot](assets/windows-demo-2026-10-26.png) and
+[development journal](docs/DEVLOG.md).
+
+
+> **Current live-stream limitation (26 Oct 2026):** Although both go2rtc
+> browser streams `c301` and `c301_h264` were observed working, Xiaomi CS2
+> `pop buffer is full` warnings have since **recurred** using `subtype=sd`.
+> The YAML quoting fix addressed stream parsing, not proven CS2 stability.
+> See [Debug Investigation #006](docs/TROUBLESHOOTING_C301.md).
 
 ## Features in this version
 
@@ -77,6 +92,12 @@ Xiaomi model status, and FFmpeg installation. **Listing C301 as known does not
 mean every firmware, region, codec, or account works.** No RTSP port needs to
 be exposed on the camera itself; go2rtc creates the local RTSP bridge.
 
+### C301 debugging notes
+
+- The user reported an initial cessation of `cs2: pop buffer is full` warnings after switching the stream definition to a YAML list-item (`-`) and restoring a known-working backup. This is a **user-observed workaround**, not a demonstrated upstream fix.
+- HEVC decoding warnings (`Could not find ref with POC 8` and `cu_qp_delta` outside range) remain under investigation.
+- Details, sanitized sample, validation and rollback: **[C301 Debug Fix #001](docs/TROUBLESHOOTING_C301.md)**.
+
 ## 3. Other sources / settings
 
 ```powershell
@@ -111,6 +132,7 @@ with your Nvidia GPU; installing the basic requirements does NOT guarantee it.
 ## Documentation and tests
 
 - `docs/DEVLOG.md` — development journal and progress evidence
+- `docs/TROUBLESHOOTING_C301.md` — CS2 workaround, HEVC decoder investigation and rollback
 - `docs/ROADMAP.md` — implemented vs planned features
 - `docs/LINKEDIN_DRAFT.md` — carefully worded LinkedIn draft for a future post
 - `docs/GITHUB_RELEASE_CHECKLIST.md` — how to avoid accidentally sharing sensitive data
@@ -124,9 +146,9 @@ Run unit tests (does not require camera or external AI weights):
 
 ## Known limitations
 
-1. C301 stream not user-tested; some Xiaomi account-region or firmware versions
+1. C301 video playback in go2rtc and the Windows Python app is user-reported working; sustained stability and YOLO inference results remain unverified; some Xiaomi account-region or firmware versions
    may fail, even when the model appears in the community list.
-2. Inference is CPU-first, and a long inference can cause video lag.
+2. Inference is CPU-first; v0.1.1 decouples it from video capture, but heavy load or software transcoding can still cause lag.
 3. Marker position uses only the detected object center in the camera image;
    it is neither a measured range nor a physically calibrated room map.
 4. GUI doesn't persist custom settings yet and Windows speech voices may vary.
@@ -166,3 +188,50 @@ git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/C301-AI-Security-Monitor.git
 git push -u origin main
 ```
+
+
+### H.265/green-frame troubleshooting
+
+If go2rtc web playback looks normal but the Python RTSP input is all green,
+see [Debug Investigation #004](docs/TROUBLESHOOTING_C301.md#debug-investigation-004--correct-go2rtc-webui-video-all-green-opencv-video).
+The guide describes an **optional** `c301_h264` FFmpeg sibling stream, preserving
+the original `c301` source for rollback. This workaround has **not** yet been
+validated on the user's camera.
+
+
+### October 26, 2026 — live go2rtc status
+
+Two browser streams `c301` and `c301_h264` have been **user-confirmed working**
+after fixing quoted stream sources in the private go2rtc YAML. The Windows Python RTSP viewer is now confirmed by user report; real-world YOLO detection and end-to-end latency improvement still need testing. See [Debug Fix #005](docs/TROUBLESHOOTING_C301.md#debug-fix-005--verification-update-2026-10-26).
+
+
+## v0.1.1 — Lower-latency RTSP preview (experimental)
+
+**User confirmation:** The local C301 RTSP H.264 stream became visible in
+AI Security Monitor on 26 Oct 2026, but there was significant display delay.
+The previous version used a single loop for `cap.read()` and YOLO prediction.
+This new version reads RTSP continuously on a dedicated thread, overwrites
+stale frames with the latest one, and performs AI inference independently.
+Tkinter renders only the latest queued preview frame per GUI tick, instead of
+repainting every queued intermediate image.
+
+Test on Windows (working `go2rtc.yaml` and Python `.venv` unchanged):
+
+```powershell
+$env:OPENCV_FFMPEG_CAPTURE_OPTIONS = 'rtsp_transport;tcp'
+.\.venv\Scripts\python.exe main.py --source 'rtsp://127.0.0.1:8554/c301_h264' --imgsz 416
+```
+
+On slow CPUs, try `--imgsz 320 --inference-interval 0.7`. This trades some
+object detection detail and responsiveness for less CPU time. If CUDA-enabled
+PyTorch is installed, `--device 0` can be tested separately. Do **not** assume
+CUDA support just because the PC has an Nvidia graphics chip.
+
+**Limits:** This reduces app-induced queue delay; it does not guarantee a fixed
+end-to-end delay if go2rtc/FFmpeg transcoding or the camera itself buffers
+video. Bounding boxes may briefly trail the latest preview during inference.
+Use a side-by-side clock/gesture comparison to measure actual latency.
+The camera firmware and private go2rtc YAML are not changed.
+
+To roll back, restore the previously working v0.1.0 project files; keep your
+`.venv` directory. Never upload a real go2rtc YAML or tokens to GitHub.

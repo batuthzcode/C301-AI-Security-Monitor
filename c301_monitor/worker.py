@@ -1,4 +1,10 @@
-"""Video capture/inference on a worker thread. The GUI remains responsive."""
+"""Low-latency worker: capture never waits for YOLO inference.
+
+One thread continually drains the RTSP decoder, replacing the previous frame.
+A second thread (this worker's main thread) performs detection on snapshots.
+This keeps the preview fresh even on slower CPUs, at the expense of predictions
+which may temporarily trail the latest preview frame.
+"""
 import os
 import queue
 import threading
@@ -7,12 +13,14 @@ import time
 from .demo import make_demo_frame
 from .detection import EventGate, unpack_yolo
 from .records import EventRecorder
+from .video import LatestFrameBuffer
 
 
 class CameraWorker:
     def __init__(self, source: str, messages: queue.Queue, recorder: EventRecorder,
                  *, demo: bool = False, confidence: float = .45,
-                 device: str = "cpu", person_only: bool = False):
+                 device: str = "cpu", person_only: bool = False,
+                 inference_size: int = 416, inference_interval: float = .45):
         self.source = source
         self.messages = messages
         self.recorder = recorder
@@ -20,10 +28,14 @@ class CameraWorker:
         self.confidence = confidence
         self.device = device
         self.person_only = person_only
+        self.inference_size = inference_size
+        self.inference_interval = inference_interval
         self.stopped = threading.Event()
         self.thread = threading.Thread(target=self._run, daemon=True)
-        self._current_frame = None
-        self._frame_lock = threading.Lock()
+        self._latest = LatestFrameBuffer()
+        self._predictions = []
+        self._predictions_at = 0.0
+        self._pred_lock = threading.Lock()
         self._gate = EventGate()
 
     def start(self):
@@ -33,8 +45,8 @@ class CameraWorker:
         self.stopped.set()
 
     def save_manual(self):
-        with self._frame_lock:
-            frame = self._current_frame.copy() if self._current_frame is not None else None
+        _sequence, latest = self._latest.snapshot()
+        frame = latest.copy() if latest is not None else None
         if frame is None:
             return None
         event = self.recorder.save(frame, "manual", None,
@@ -46,77 +58,123 @@ class CameraWorker:
         try:
             self.messages.put_nowait(message)
         except queue.Full:
-            # Drop oldest video frame rather than block capture indefinitely.
+            # Best effort: discard an older update rather than block capture.
+            # The GUI additionally renders only the newest frame each poll.
             try:
                 self.messages.get_nowait()
             except queue.Empty:
-                pass
+                return
             try:
                 self.messages.put_nowait(message)
             except queue.Full:
                 pass
 
-    def _run(self):
-        import cv2
-        cap = None
+    def _observe(self, frame, predictions, now, *, demo=False):
+        filtered = [d for d in predictions if not self.person_only or d.name == "person"]
+        for det in self._gate.observe(filtered, now):
+            event = self.recorder.save(frame, det.name, det.confidence,
+                                       "demo" if demo else "live")
+            self._emit(("event", event))
+
+    def _run_demo(self):
+        self._emit(("status", "DEMO / sahte görüntü"))
+        started = time.monotonic()
+        last_display = 0.0
+        while not self.stopped.is_set():
+            frame, predictions = make_demo_frame(time.monotonic() - started)
+            self._latest.update(frame)
+            now = time.monotonic()
+            self._observe(frame, predictions, now, demo=True)
+            if now - last_display >= .10:
+                self._emit(("frame", frame.copy(), predictions))
+                last_display = now
+            self.stopped.wait(.12)
+
+    def _read_stream(self, cap):
+        """Continuously read and replace frames; NEVER wait for inference."""
+        no_frame_count = 0
+        last_display = 0.0
         try:
-            self._emit(("status", "Model hazırlanıyor..." if not self.demo else "DEMO modunda"))
-            if self.demo:
-                model = None
-            else:
-                # Delay import/download until a real stream is requested.
-                from ultralytics import YOLO
-                model = YOLO("yolo11n.pt")
-                source = int(self.source) if self.source.isdecimal() else self.source
-                if str(self.source).startswith("rtsp://"):
-                    os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
-                cap = cv2.VideoCapture(source)
-                cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # best effort only
-                if not cap.isOpened():
-                    raise RuntimeError("Görüntü kaynağı açılamadı. go2rtc akışını ve adresi kontrol edin.")
-            self._emit(("status", "DEMO / sahte görüntü" if self.demo else "Canlı akış bağlı"))
-            previous_predictions = []
-            last_predict = 0.0
-            last_display = 0.0
-            no_frame_count = 0
-            start = time.monotonic()
             while not self.stopped.is_set():
-                if self.demo:
-                    frame, previous_predictions = make_demo_frame(time.monotonic() - start)
-                    time.sleep(.12)
-                else:
-                    ok, frame = cap.read()
-                    if not ok:
-                        no_frame_count += 1
-                        if no_frame_count > 50:
-                            raise RuntimeError("Kamera akışı kesildi. Bağlantıyı yeniden başlatın.")
-                        time.sleep(.10)
-                        continue
-                    no_frame_count = 0
-                    # Rate limit CPU inference for responsiveness.
-                    if time.monotonic() - last_predict >= .45:
-                        out = model.predict(frame, conf=self.confidence,
-                                            imgsz=640, device=self.device,
-                                            verbose=False)[0]
-                        previous_predictions = unpack_yolo(out)
-                        last_predict = time.monotonic()
-                detections = [d for d in previous_predictions
-                              if not self.person_only or d.name == "person"]
+                ok, frame = cap.read()
+                if not ok:
+                    no_frame_count += 1
+                    if no_frame_count > 50:
+                        self._emit(("error", "Kamera akışı kesildi. Bağlantıyı yeniden başlatın."))
+                        self.stopped.set()
+                        return
+                    self.stopped.wait(.10)
+                    continue
+                no_frame_count = 0
+                self._latest.update(frame)
                 now = time.monotonic()
-                for det in self._gate.observe(detections, now):
-                    # Full images can be sensitive; saved only on this local PC.
-                    event = self.recorder.save(frame, det.name, det.confidence,
-                                               "demo" if self.demo else "live")
-                    self._emit(("event", event))
-                with self._frame_lock:
-                    self._current_frame = frame.copy()
-                if now - last_display > .095:
-                    self._emit(("frame", frame.copy(), detections))
+                if now - last_display >= .10:
+                    with self._pred_lock:
+                        # Avoid drawing very old bounding boxes on new frames.
+                        detections = list(self._predictions) if now - self._predictions_at < 2.0 else []
+                    self._emit(("frame", frame, detections))
                     last_display = now
+        except Exception as exc:
+            if not self.stopped.is_set():
+                self._emit(("error", f"RTSP okuma hatası: {exc}"))
+                self.stopped.set()
+        finally:
+            cap.release()
+
+    def _run_live(self):
+        import cv2
+        self._emit(("status", "Model hazırlanıyor..."))
+        from ultralytics import YOLO
+        model = YOLO("yolo11n.pt")
+        source = int(self.source) if self.source.isdecimal() else self.source
+        if str(self.source).startswith("rtsp://"):
+            os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
+        cap = cv2.VideoCapture(source)
+        # For FFMPEG, this property might not be honored; our continuously
+        # draining reader thread handles most decoder backlog in practice.
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        if not cap.isOpened():
+            cap.release()
+            raise RuntimeError("Görüntü kaynağı açılamadı. go2rtc akışını ve adresi kontrol edin.")
+        self._emit(("status", "Canlı akış bağlı (düşük gecikme modu)"))
+        capture_thread = threading.Thread(target=self._read_stream, args=(cap,), daemon=True)
+        capture_thread.start()
+        last_infer_start = 0.0
+        processed_seq = 0
+        try:
+            while not self.stopped.is_set():
+                now = time.monotonic()
+                if now - last_infer_start < self.inference_interval:
+                    self.stopped.wait(min(.08, self.inference_interval - (now - last_infer_start)))
+                    continue
+                seq, frame = self._latest.snapshot()
+                if frame is None or seq == processed_seq:
+                    self.stopped.wait(.025)
+                    continue
+                # YOLO reads a stable snapshot while the camera reader continues.
+                processed_seq = seq
+                last_infer_start = time.monotonic()
+                result = model.predict(frame.copy(), conf=self.confidence,
+                                       imgsz=self.inference_size, device=self.device,
+                                       verbose=False)[0]
+                predictions = unpack_yolo(result)
+                with self._pred_lock:
+                    self._predictions = predictions
+                    self._predictions_at = time.monotonic()
+                self._observe(frame, predictions, self._predictions_at)
+        finally:
+            self.stopped.set()
+            capture_thread.join(timeout=3.0)
+
+    def _run(self):
+        try:
+            if self.demo:
+                self._run_demo()
+            else:
+                self._run_live()
         except Exception as error:
             self._emit(("error", str(error)))
         finally:
-            if cap is not None:
-                cap.release()
+            self.stopped.set()
             self._emit(("status", "Bağlantı kapalı"))
             self._emit(("ended",))
