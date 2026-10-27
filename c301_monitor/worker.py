@@ -20,7 +20,8 @@ class CameraWorker:
     def __init__(self, source: str, messages: queue.Queue, recorder: EventRecorder,
                  *, demo: bool = False, confidence: float = .45,
                  device: str = "cpu", person_only: bool = False,
-                 inference_size: int = 416, inference_interval: float = .45):
+                 inference_size: int = 416, inference_interval: float = .45,
+                 preview_only: bool = False):
         self.source = source
         self.messages = messages
         self.recorder = recorder
@@ -30,6 +31,7 @@ class CameraWorker:
         self.person_only = person_only
         self.inference_size = inference_size
         self.inference_interval = inference_interval
+        self.preview_only = preview_only
         self.stopped = threading.Event()
         self.thread = threading.Thread(target=self._run, daemon=True)
         self._latest = LatestFrameBuffer()
@@ -123,9 +125,11 @@ class CameraWorker:
 
     def _run_live(self):
         import cv2
-        self._emit(("status", "Model hazırlanıyor..."))
-        from ultralytics import YOLO
-        model = YOLO("yolo11n.pt")
+        model = None
+        if not self.preview_only:
+            self._emit(("status", "Model hazırlanıyor..."))
+            from ultralytics import YOLO
+            model = YOLO("yolo11n.pt")
         source = int(self.source) if self.source.isdecimal() else self.source
         if str(self.source).startswith("rtsp://"):
             os.environ.setdefault("OPENCV_FFMPEG_CAPTURE_OPTIONS", "rtsp_transport;tcp")
@@ -136,12 +140,17 @@ class CameraWorker:
         if not cap.isOpened():
             cap.release()
             raise RuntimeError("Görüntü kaynağı açılamadı. go2rtc akışını ve adresi kontrol edin.")
-        self._emit(("status", "Canlı akış bağlı (düşük gecikme modu)"))
+        self._emit(("status", "Canlı akış bağlı (yalnızca önizleme)" if self.preview_only
+                    else "Canlı akış bağlı (düşük gecikme modu)"))
         capture_thread = threading.Thread(target=self._read_stream, args=(cap,), daemon=True)
         capture_thread.start()
         last_infer_start = 0.0
         processed_seq = 0
         try:
+            if self.preview_only:
+                # Isolate capture/transcoding latency without YOLO, recording or alerts.
+                self.stopped.wait()
+                return
             while not self.stopped.is_set():
                 now = time.monotonic()
                 if now - last_infer_start < self.inference_interval:

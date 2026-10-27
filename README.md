@@ -2,7 +2,7 @@
 
 **A Windows-first, local-first computer vision companion for Xiaomi Smart Camera C301.**
 
-> **Status: v0.1.1 low-latency experiment / early prototype.** The program and demo code are written;
+> **Status: v0.1.2 latency diagnostics experiment / early prototype.** The program and demo code are written;
 > real C301 video is **reported working by the user** in go2rtc and the Python dashboard,
 > but sustained playback, YOLO accuracy, and end-to-end latency are not yet validated.
 > The project does **not** modify camera firmware, impersonate a true radar, or
@@ -23,6 +23,19 @@ See [Windows demo screenshot](assets/windows-demo-2026-10-26.png) and
 > `pop buffer is full` warnings have since **recurred** using `subtype=sd`.
 > The YAML quoting fix addressed stream parsing, not proven CS2 stability.
 > See [Debug Investigation #006](docs/TROUBLESHOOTING_C301.md).
+
+## v0.1.2: latency diagnostic mode
+
+To compare latency **without YOLO**, run from the project's Python environment:
+
+```powershell
+$env:OPENCV_FFMPEG_CAPTURE_OPTIONS = 'rtsp_transport;tcp'
+.\.venv\Scripts\python.exe main.py --source 'rtsp://127.0.0.1:8554/c301_h264' --preview-only
+```
+
+The live camera view runs, but object detection, alerting and automatic event
+recording are disabled in this test. See [Latency diagnostic guide](docs/LATENCY_DIAGNOSTICS.md)
+for a non-destructive GPU-accelerated alternative stream and comparisons.
 
 ## Features in this version
 
@@ -132,6 +145,7 @@ with your Nvidia GPU; installing the basic requirements does NOT guarantee it.
 ## Documentation and tests
 
 - `docs/DEVLOG.md` — development journal and progress evidence
+- `docs/LATENCY_DIAGNOSTICS.md` — user-reported 3-second delay and controlled isolation tests
 - `docs/TROUBLESHOOTING_C301.md` — CS2 workaround, HEVC decoder investigation and rollback
 - `docs/ROADMAP.md` — implemented vs planned features
 - `docs/LINKEDIN_DRAFT.md` — carefully worded LinkedIn draft for a future post

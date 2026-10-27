@@ -219,3 +219,14 @@ Next step:
 - Tests are software-only; real camera latency benefit remains unverified.
 - Existing v0.1.0 backup remains the rollback point.
 - Regression test verified that capture keeps reading while simulated YOLO inference sleeps; **8 tests passed**.
+
+## 2026-10-26 — Milestone 020: ~3s live-stream delay, isolation plan
+
+- User confirmed live video displays in AI Security Monitor v0.1.1 but with
+  approximately 3 seconds of motion-to-screen lag (manual estimate).
+- Added `--preview-only` mode to isolate YOLO from transport/decoder buffering.
+- Maintained `c301` and `c301_h264` intact; documented third hardware-encoded
+  `c301_h264_hw` stream for an optional controlled FFmpeg comparison.
+- Updated docs, changelog and added tests.
+- No Xiaomi firmware or private go2rtc configuration changed.
+- Success/failure and latency improvement **not yet confirmed** on the user's PC.

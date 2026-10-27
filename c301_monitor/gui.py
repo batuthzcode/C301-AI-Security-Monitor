@@ -44,7 +44,7 @@ class MonitorApp:
         self.frame_size = (960, 540)
         self.event_count = 0
 
-        root.title("C301 AI Security Monitor  |  v0.1.1")
+        root.title("C301 AI Security Monitor  |  v0.1.2")
         root.configure(bg=BG)
         root.geometry("1240x800")
         root.minsize(990, 680)
@@ -62,7 +62,7 @@ class MonitorApp:
         heading.grid(row=0, column=0, sticky="ew", padx=24, pady=(18, 2))
         tk.Label(heading, text="C301  /  AI SECURITY MONITOR", fg=FG, bg=BG,
                  font=("Segoe UI", 20, "bold")).pack(side="left")
-        tk.Label(heading, text="LOCAL-FIRST  ·  v0.1.1", fg=CYAN, bg=BG,
+        tk.Label(heading, text="LOCAL-FIRST  ·  v0.1.2", fg=CYAN, bg=BG,
                  font=("Consolas", 10, "bold")).pack(side="right")
 
         controls = tk.Frame(self.root, bg=BG)
@@ -155,7 +155,8 @@ class MonitorApp:
                                    device=self.options.device,
                                    person_only=False,
                                    inference_size=self.options.imgsz,
-                                   inference_interval=self.options.inference_interval)
+                                   inference_interval=self.options.inference_interval,
+                                   preview_only=self.options.preview_only)
         self.running = True
         self.status_var.set("Bağlanıyor...")
         self.worker.start()
@@ -266,6 +267,8 @@ def main(argv=None):
     ap.add_argument("--source", default="rtsp://127.0.0.1:8554/c301",
                     help="OpenCV input, RTSP stream URL, webcam index (0) or video file")
     ap.add_argument("--demo", action="store_true", help="Synthetic demo without camera/model")
+    ap.add_argument("--preview-only", action="store_true",
+                    help="Only show camera preview; disable YOLO/event detection to isolate stream latency")
     ap.add_argument("--device", default="cpu", help="Ultralytics inference device: cpu, 0, cuda:0")
     ap.add_argument("--imgsz", type=int, default=416,
                     help="YOLO analysis image size; smaller is faster (default: 416)")

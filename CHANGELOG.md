@@ -1,3 +1,10 @@
+## v0.1.2 / 2026-10-26 — Latency isolation experiment
+- User reports ~3-second video delay despite working real feed.
+- Added `--preview-only` mode to disable YOLO analysis and event recording while leaving live preview functional.
+- Added separate, safe go2rtc hardware-transcoding `c301_h264_hw` test plan without changing working `c301`/`c301_h264` definitions.
+- Added documentation at `docs/LATENCY_DIAGNOSTICS.md` and regression test for preview-only capture.
+- Existing 3-second latency unresolved until hardware testing; does not touch Xiaomi firmware or user go2rtc private config.
+
 # Changelog
 
 ## 0.1.0 — 2026-10-26 (prototype)
