@@ -81,7 +81,7 @@ bağlıdır.
 
 Tüm adımlar: [Geliştirme geçmişi](docs/HISTORY_TR.md) ·
 [Mimari](docs/ARCHITECTURE.md) · [Yol haritası](docs/ROADMAP.md) ·
-[Güvenlik](docs/SECURITY.md)
+[Güvenlik](docs/SECURITY.md) · [Kaynak bütünlüğü](docs/INVENTORY_AUDIT.md)
 
 Gerçek `go2rtc.yaml`, Xiaomi hesabı/token'ı, cihaz kimliği, LAN bilgileri,
 kamera görüntüleri, ses kayıtları, model ağırlıkları ve binary dosyalar bu depoya

@@ -1,0 +1,83 @@
+﻿# Ti Motor / C301 experimental test; no additional PowerShell windows.
+# Keep this file, the v2 installer and Ti Python file in the project folder.
+$ErrorActionPreference = 'Stop'
+Set-Location -LiteralPath $PSScriptRoot
+$python = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+$ti = Join-Path $PSScriptRoot 'ti_assistant_v0_5.py'
+$installer = Join-Path $PSScriptRoot 'install_c301_ptz_v2.py'
+$config = Join-Path $env:USERPROFILE 'OneDrive\Masaüstü\thz proje\go2rtc_win64\go2rtc.yaml'
+$work = Join-Path $env:LOCALAPPDATA 'C301-go2rtc-audio-fix'
+$ptz = Join-Path $work 'go2rtc_ti_ptz_experimental.exe'
+$fixed = Join-Path $work 'go2rtc_audio_fixed.exe'
+$ptzProcess = $null
+
+try {
+    Write-Host 'Ti C301 - Motor Deneme (Tek Pencere)' -ForegroundColor Cyan
+    foreach ($f in @($python,$ti,$installer,$config,$fixed)) {
+        if (-not (Test-Path -LiteralPath $f -PathType Leaf)) {
+            throw "Gerekli dosya bulunamadi: $f"
+        }
+    }
+    if (-not (Test-Path -LiteralPath $ptz -PathType Leaf)) {
+        Write-Host 'PTZ EXE yok. Ayrı deneysel sürüm derleniyor...' -ForegroundColor Yellow
+        & $python $installer
+        if ($LASTEXITCODE -ne 0) { throw 'PTZ derlemesi basarisiz. Yukaridaki hata mesajini paylas.' }
+        if (-not (Test-Path -LiteralPath $ptz -PathType Leaf)) { throw 'Derleme sonrasinda PTZ EXE bulunamadi.' }
+    }
+
+    $rule = Get-NetFirewallRule -DisplayName 'C301 Ti PTZ UDP' -ErrorAction SilentlyContinue
+    if (-not $rule) {
+        $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+        $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+        $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+        if (-not $isAdmin) {
+            throw 'Ilk kurulum icin PowerShell penceresini yonetici olarak acip bu komutu ayni pencerede tekrar calistir. Bu bir defalik UDP guvenlik duvari izni icin gerekli.'
+        }
+        New-NetFirewallRule -DisplayName 'C301 Ti PTZ UDP' -Direction Inbound -Action Allow -Program $ptz -Protocol UDP -Profile Private -RemoteAddress LocalSubnet | Out-Null
+        Write-Host 'Yerel ag icin PTZ UDP izni eklendi.' -ForegroundColor Green
+    }
+
+    # Shut down only known go2rtc binaries. Do not touch other Python/FFmpeg applications.
+    $old = @(Get-CimInstance Win32_Process | Where-Object {
+        $_.Name -in @('go2rtc.exe','go2rtc_audio_fixed.exe','go2rtc_ti_ptz_experimental.exe')
+    })
+    if ($old.Count -gt 0) {
+        Write-Host 'Onceki go2rtc oturumlari kapatiliyor...'
+        foreach ($p in $old) { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop }
+        Start-Sleep -Seconds 3
+    }
+
+    Write-Host 'Ses duzeltmesini koruyan deneysel PTZ go2rtc baslatiliyor...'
+    $ptzProcess = Start-Process -FilePath $ptz -ArgumentList @('-c', "`"$config`"") -WindowStyle Hidden -PassThru
+    Start-Sleep -Seconds 5
+    if ($ptzProcess.HasExited) { throw 'PTZ go2rtc hemen kapandi. Portlar 1984/8554 baska islemde olabilir.' }
+
+    # Refuse remote-facing HTTP APIs: the experimental PTZ endpoint must not be exposed.
+    $listeners = @(Get-NetTCPConnection -State Listen -LocalPort 1984 -ErrorAction SilentlyContinue)
+    if ($listeners.Count -eq 0) { throw 'Go2rtc API portu 1984 dinlemiyor. go2rtc.yaml ayarlarini kontrol et.' }
+    $remoteFacing = @($listeners | Where-Object { $_.LocalAddress -notin @('127.0.0.1','::1') })
+    if ($remoteFacing.Count -gt 0) {
+        throw 'Guvenlik: go2rtc API yerel agda dinliyor. go2rtc.yaml dosyasinda api: altina listen: "127.0.0.1:1984" ayarini yapmadan PTZ etkinlestirilmeyecek.'
+    }
+
+    $streams = Invoke-RestMethod -Uri 'http://127.0.0.1:1984/api/streams' -TimeoutSec 8
+    $names = @($streams.PSObject.Properties.Name)
+    if ($names -notcontains 'c301_ses_test') {
+        throw 'c301_ses_test akisi bulunamadi. Once eski ses sisteminin akis tanimini geri getir.'
+    }
+    Write-Host 'Go2rtc ve kamera ses akisi hazir.' -ForegroundColor Green
+    Write-Host 'Xiaomi Home hareket takibini kapat. Once sadece bir kez "Ti, sola don" de.' -ForegroundColor Yellow
+    Write-Host 'Ti aciliyor (durmak icin Ctrl+C)...' -ForegroundColor Cyan
+    & $python $ti '--model' 'small' '--threshold' '220' '--enable-motor'
+    if ($LASTEXITCODE -ne 0) { Write-Host 'Ti hata ile sonlandi. Yukaridaki logu incele.' -ForegroundColor Yellow }
+} catch {
+    Write-Host ('HATA: ' + $_.Exception.Message) -ForegroundColor Red
+} finally {
+    if ($null -ne $ptzProcess) {
+        $ptzProcess.Refresh()
+        if (-not $ptzProcess.HasExited) {
+            Stop-Process -Id $ptzProcess.Id -Force -ErrorAction SilentlyContinue
+        }
+    }
+    Write-Host 'Deneme kapandi. Eski go2rtc_audio_fixed.exe dosyasi yerinde duruyor.' -ForegroundColor DarkGray
+}

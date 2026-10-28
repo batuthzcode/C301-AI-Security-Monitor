@@ -172,3 +172,15 @@ Proje beş katmanlı bir prototipe dönüştü:
 Bir sonraki hedef, parçaları tek yapılandırma ve güvenli başlangıç komutu altında
 birleştirmek; donanımda ölçülebilir testler tamamlanmadan deneysel özellikleri
 “çalışıyor” diye işaretlememektir.
+
+## 13. Kaynak bütünlüğü denetimi
+
+Dört yerel sürüm ZIP'i ilgili Git etiketleriyle dosya adı, dosya sayısı ve Git
+blob özeti düzeyinde karşılaştırıldı; eksik veya değişmiş dosya bulunmadı. Ana
+çalışma klasöründe kalan güvenli PTZ v2, PowerShell, milestone ve benzersiz ara
+snapshot dosyaları da `experimental/`, `docs/milestones/` ve
+`legacy/local-snapshots/` altında korundu.
+
+Test sesleri, model ağırlığı, sanal ortam, çalışma artıkları ve özel kamera
+verileri bilinçli olarak yayımlanmadı. Tam envanter ve gerekçeler için
+`docs/INVENTORY_AUDIT.md` belgesine bakın.
