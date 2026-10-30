@@ -1,5 +1,23 @@
 # C301 AI Security Monitor — development roadmap
 
+> Bu yol haritası yaşayan bir belgedir. Mevcut depo bir demo/prototiptir;
+> aşağıdaki maddeler tamamlanmadan kararlı ürün veya `v1.0` olarak
+> adlandırılmayacaktır.
+
+## Sürüm hedefleri
+
+| Hedef | Amaç | Çıkış ölçütü |
+|---|---|---|
+| `v0.5.x-experimental` | Mevcut demo ve geçmişi korumak | Kaynak envanteri, testler ve gizlilik kontrolü |
+| `v0.6-demo` | Tek ve tekrarlanabilir demo akışı | Temiz Windows kurulumu, tek yapılandırma, sağlık/gecikme göstergeleri |
+| `v0.7-demo` | Gerçek C301 kararlılığı | 30–60 dakika test, yeniden bağlanma ve ölçülebilir olay sonuçları |
+| `v0.8-demo` | Ti entegrasyonu | GUI başlat/durdur, yerel TTS seçeneği ve güvenli ses fallback'i |
+| `v0.9-rc` | Paketleme ve güvenlik | Windows paketi, saklama politikası ve üçüncü taraf/lisans incelemesi |
+| `v1.0` | Kararlı yerel yardımcı | Belgelenmiş kurulum, donanım matrisi, tekrarlanabilir testler ve güvenli varsayılanlar |
+
+PTZ bu sürüm sırasından bağımsız bir araştırmadır. Fiziksel hareket, sınırlar ve
+acil durdurma gerçek donanımda doğrulanmadan kararlı özelliğe dönüşmez.
+
 ## Şimdi — v0.5 deneysel konsolidasyon
 
 - [x] v0.1.0–v0.2.0 arşivlerini etiketli Git geçmişine dönüştür.
@@ -78,3 +96,4 @@ physical Xiaomi C301 until it has been tested on the user's device.
 | 5 | Standalone always-on host; PC-off use case | Not in current scope |
 
 No face recognition or identity claims in v0.1.
+
