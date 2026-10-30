@@ -1,6 +1,12 @@
 # C301 AI Security Monitor
 
-## Güncel durum: v0.5.0-experimental
+> [!IMPORTANT]
+> **Bu depo tamamlanmış bir ürün değil, geliştirilmeye devam edilen bir
+> demo/prototiptir.** `v0.5.0-experimental`, bugüne kadar çalışan parçaları ve
+> deneyleri güvenli bir başlangıç noktası olarak bir araya getirir. Kararlı sürüm
+> hedefleri [yol haritasında](docs/ROADMAP.md) izlenir.
+
+## Demo durumu: v0.5.0-experimental
 
 Xiaomi Smart Camera C301 görüntüsünü Windows bilgisayarda yerel olarak işleyen;
 YOLO ile nesne algılayan, olay kaydı tutan ve deneysel **Ti** sesli asistanını
@@ -67,6 +73,17 @@ Ti için:
 `Ti, sistem durumu ne?` gibi komutlar kullanılabilir. `--enable-motor` normal
 kullanım için önerilmez; stok go2rtc'de bulunmayan deneysel bir yerel uç noktaya
 bağlıdır.
+
+### Bundan sonra nasıl geliştirilecek?
+
+1. Görüntü, yeniden bağlanma ve olay hattı gerçek C301 üzerinde uzun süreli
+   ölçümlerle kararlı hale getirilecek.
+2. Kamera, Ti ve olay ayarları tek güvenli yapılandırmada birleştirilecek.
+3. Yerel Türkçe ses ve GUI entegrasyonu geliştirilecek.
+4. PTZ yalnız donanım üzerinde güvenli sınırlar ve acil durdurma doğrulandıktan
+   sonra normal kullanıma aday olacak.
+5. Temiz Windows kurulumu, paketleme ve veri saklama politikası tamamlanmadan
+   `v1.0` ilan edilmeyecek.
 
 ### Baştan bugüne ne yaptık?
 
@@ -352,3 +369,4 @@ Voice/weather is an independent **PC microphone and PC speaker** companion, not 
 ```
 
 To record a spoken question on demand: `voice_assistant.py --listen --city Ankara`. A full general chat assistant is **not yet implemented**.
+
