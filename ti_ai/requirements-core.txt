@@ -1,0 +1,6 @@
+# Lightweight UI/demo and local diagnostics. Camera AI/voice/AR are optional.
+PySide6-Essentials>=6.7,<7
+numpy>=1.26,<3
+opencv-python>=4.9,<5
+Pillow>=10,<13
+psutil>=5.9,<8

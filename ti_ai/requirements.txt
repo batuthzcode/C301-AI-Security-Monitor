@@ -1,0 +1,12 @@
+# Ti AI v2.3 desktop runtime (Python 3.11 recommended)
+PySide6-Essentials>=6.7,<7
+numpy>=1.26,<3
+opencv-python>=4.9,<5
+opencv-contrib-python>=4.9,<5
+Pillow>=10,<13
+psutil>=5.9,<8
+ultralytics>=8.3,<9
+faster-whisper>=1.1,<2
+huggingface-hub==1.16.1
+gTTS>=2.5,<3
+mediapipe>=0.10.14,<0.11

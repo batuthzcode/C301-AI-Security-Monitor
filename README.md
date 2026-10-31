@@ -99,7 +99,15 @@ bağlıdır.
 Tüm adımlar: [Geliştirme geçmişi](docs/HISTORY_TR.md) ·
 [Mimari](docs/ARCHITECTURE.md) · [Yol haritası](docs/ROADMAP.md) ·
 [Güvenlik](docs/SECURITY.md) · [Kaynak bütünlüğü](docs/INVENTORY_AUDIT.md) ·
-[Arındırılmış Ti AI devam notları](docs/TI_AI_PROJECT_CONTINUATION_2026-10-31.md)
+[Arındırılmış Ti AI devam notları](docs/TI_AI_PROJECT_CONTINUATION_2026-10-31.md) ·
+[Ti AI v2.3 çalıştırılabilir demo](ti_ai/README.md)
+
+### Ti AI v2.3 arayüzü
+
+Güncel, kişisel veriden arındırılmış PySide6 kaynakları `ti_ai/` klasöründedir.
+Kamera ve hesap gerekmeden açılan gerçek arayüzün demo görüntüsü:
+
+![Ti AI v2.3 gerçek arayüzü; kamera bağlı değil](ti_ai/assets/ti-ai-v2.3-demo.png)
 
 Gerçek `go2rtc.yaml`, Xiaomi hesabı/token'ı, cihaz kimliği, LAN bilgileri,
 kamera görüntüleri, ses kayıtları, model ağırlıkları ve binary dosyalar bu depoya
@@ -370,4 +378,3 @@ Voice/weather is an independent **PC microphone and PC speaker** companion, not 
 ```
 
 To record a spoken question on demand: `voice_assistant.py --listen --city Ankara`. A full general chat assistant is **not yet implemented**.
-

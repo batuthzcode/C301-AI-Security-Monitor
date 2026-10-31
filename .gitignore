@@ -7,6 +7,13 @@ go2rtc.yaml
 # Camera stills/videos/events MUST NEVER be committed
 private_data/
 _voice_test/
+Ti_Veriler/
+Ti_Kayitlar/
+Ti_AR_Modeller/
+ti_ai/Ti_Veriler/
+ti_ai/Ti_Kayitlar/
+ti_ai/Ti_AR_Modeller/
+ti_ai/_voice_test/
 ti_mikrofon_test.wav
 *.wav
 *.mp3
@@ -19,9 +26,16 @@ go2rtc.yaml.*
 *.avi
 *.mov
 *.mkv
+*.sqlite
+*.sqlite3
+*.db
+*.pcap
+*.pcapng
+*.har
 # Model weights
 *.pt
 *.onnx
+*.task
 # Python / editor
 __pycache__/
 *.py[cod]
