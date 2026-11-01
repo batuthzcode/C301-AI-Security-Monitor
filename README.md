@@ -21,6 +21,26 @@ YOLO ile nesne algılayan, olay kaydı tutan ve deneysel **Ti** sesli asistanın
 Güncel PySide6 kontrol merkezi, kurulum betiği ve kişisel veriden arındırılmış
 kaynaklar: **[Ti AI v2.3 çalıştırılabilir demo](ti_ai/README.md)**.
 
+## Ti'nin amacı: kameradan kişisel asistana
+
+Ti'yi yalnızca nesne algılayan bir güvenlik kamerası olarak değil, bilgisayarımda
+ve C301 kameramla birlikte çalışan deneysel bir **kişisel asistan** olarak
+tasarlıyorum:
+
+- Kamera durumunu, son olayları ve sistem sağlığını Türkçe sorularla öğrenmek.
+- “**Ti, saldırı tehdidi var mı?**” dendiğinde son yerel Cyber SOC örneklemini
+  özetlemek; görülen şüphe göstergelerini ve analizin sınırlarını sesli anlatmak.
+- İsteğe bağlı yerel/Ollama veya OpenAI sohbeti yapılandırıldığında genel sorulara
+  yanıt vermek ve günlük komutlarda yardımcı olmak.
+- Sıkıldığımda AR Studio'da parmakla havaya çizmek, el hareketlerini ve görsel
+  efektleri denemek.
+- Nesne/kişi algılama ve yerel olay kaydıyla kamerayı daha anlaşılır bir güvenlik
+  arayüzüne dönüştürmek.
+
+Cyber SOC sonucu bir antivirüs veya profesyonel SOC kararı değildir. Kısa ve
+izinli ağ örneklemini açıklar; “şüphe bulunmadı” sonucu saldırı olmadığını garanti
+etmez.
+
 Güncel kod şunları içerir:
 
 - C301/go2rtc yerel RTSP görüntüsü, Tkinter arayüzü ve YOLO11n nesne algılama.
@@ -45,15 +65,16 @@ etmez.
 | Görsel takip | Deneysel |
 | PTZ motor hareketi | **Doğrulanmadı; varsayılan kapalı** |
 
-### Görsel özellik galerisi
+### Canlı özellik testleri
 
-| AR Studio | Ağ Güvenliği / Cyber SOC |
+| AR Studio — gerçek parmak çizimi | Cyber SOC — anonimleştirilmiş gerçek test |
 |---|---|
-| ![Ti AR Studio sentetik görsel testi](ti_ai/assets/ti-ai-v2.3-ar-studio.png) | ![Ti Ağ Güvenliği ve Cyber SOC güvenli önizlemesi](ti_ai/assets/ti-ai-v2.3-cyber-soc.png) |
+| ![Ti AR Studio canlı parmak çizimi](ti_ai/assets/ti-ai-v2.3-ar-live-drawing.png) | ![Ti Cyber SOC anonimleştirilmiş canlı test sonucu](ti_ai/assets/ti-ai-v2.3-cyber-soc-live-redacted.png) |
 
-AR görselindeki yüz/el noktaları ve Cyber SOC raporu açıkça işaretlenmiş sentetik
-önizlemelerdir. Gerçek çıkarım veya gerçek ağ taraması sonucu gibi sunulmazlar;
-ama uygulamanın çalışan arayüzünü ve mevcut kontrollerini gösterirler.
+AR karesi gerçek C301 görüntüsünde MediaPipe el takibiyle parmak çiziminin
+çalıştığı anda alındı. Cyber SOC karesi ise izinli Wi-Fi adaptöründe yapılan
+12 saniyelik, 800 paketle sınırlı gerçek testin yayın için anonimleştirilmiş
+özetidir. IP, alan adı, adaptör kimliği ve kesin tarih/saat kaldırıldı.
 
 ### Mimari
 
@@ -403,3 +424,4 @@ Voice/weather is an independent **PC microphone and PC speaker** companion, not 
 ```
 
 To record a spoken question on demand: `voice_assistant.py --listen --city Ankara`. A full general chat assistant is **not yet implemented**.
+

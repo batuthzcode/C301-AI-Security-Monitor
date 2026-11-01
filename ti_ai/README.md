@@ -6,15 +6,26 @@ geliştirme demosudur; bitmiş güvenlik ürünü değildir.
 
 ![Ti AI v2.3 gerçek arayüzü; kamera bağlı değilken alınmış demo görüntüsü](assets/ti-ai-v2.3-demo.png)
 
-## Ekran görüntüleri
+## Ti ne yapmayı amaçlıyor?
 
-| AR Studio | Ağ Güvenliği / Cyber SOC |
+Ti; C301 kamera gözlemi, Türkçe sesli komutlar, sistem durumu ve yerel güvenlik
+araçlarını tek bir kişisel asistan ekranında birleştiren deneysel bir projedir.
+Kamera ve olay durumunu sorabilir, isteğe bağlı sohbet modeliyle genel sorulara
+yanıt alabilir, “Ti, saldırı tehdidi var mı?” komutuyla son Cyber SOC örnekleminin
+özetini dinleyebilir ve AR Studio'da parmakla çizim yapabilirsiniz.
+
+Cyber SOC kısa ve izinli bir trafik örneklemini yorumlar; antivirüsün veya
+profesyonel güvenlik izlemesinin yerine geçmez ve saldırı olmadığını garanti etmez.
+
+## Canlı test ekranları
+
+| AR Studio — gerçek parmak çizimi | Cyber SOC — anonimleştirilmiş gerçek test |
 |---|---|
-| ![AR Studio sentetik görsel testi](assets/ti-ai-v2.3-ar-studio.png) | ![Cyber SOC kişisel veri içermeyen sentetik önizleme](assets/ti-ai-v2.3-cyber-soc.png) |
+| ![AR Studio canlı parmak çizimi](assets/ti-ai-v2.3-ar-live-drawing.png) | ![Cyber SOC anonimleştirilmiş canlı test sonucu](assets/ti-ai-v2.3-cyber-soc-live-redacted.png) |
 
-AR karesi uygulamanın **Görsel Test** düğmesinin ürettiği sentetik çizim testi;
-Cyber SOC karesi ise gerçek IP, MAC veya alan adı içermeyen güvenli arayüz
-önizlemesidir.
+AR karesi gerçek C301 görüntüsü üzerinde el takibi ve çizim anını gösterir. Cyber
+SOC karesi 12 saniyelik gerçek testten üretildi; IP, alan adı, adaptör kimliği ve
+kesin tarih/saat yayın kopyasından çıkarıldı. Ham paket kaydı tutulmadı.
 
 ## Neler var?
 
@@ -104,3 +115,4 @@ $env:QT_QPA_PLATFORM = 'offscreen'
 ile dışlanmıştır. Paylaşmadan önce yine de `git status` ve gizlilik taraması yapın.
 
 NASA Blue Marble dokusu: [NASA Earth Observatory](https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/).
+
