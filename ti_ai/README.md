@@ -6,6 +6,16 @@ geliştirme demosudur; bitmiş güvenlik ürünü değildir.
 
 ![Ti AI v2.3 gerçek arayüzü; kamera bağlı değilken alınmış demo görüntüsü](assets/ti-ai-v2.3-demo.png)
 
+## Ekran görüntüleri
+
+| AR Studio | Ağ Güvenliği / Cyber SOC |
+|---|---|
+| ![AR Studio sentetik görsel testi](assets/ti-ai-v2.3-ar-studio.png) | ![Cyber SOC kişisel veri içermeyen sentetik önizleme](assets/ti-ai-v2.3-cyber-soc.png) |
+
+AR karesi uygulamanın **Görsel Test** düğmesinin ürettiği sentetik çizim testi;
+Cyber SOC karesi ise gerçek IP, MAC veya alan adı içermeyen güvenli arayüz
+önizlemesidir.
+
 ## Neler var?
 
 - PySide6 masaüstü kontrol merkezi ve karanlık/açık tema.

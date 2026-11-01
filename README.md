@@ -45,6 +45,16 @@ etmez.
 | Görsel takip | Deneysel |
 | PTZ motor hareketi | **Doğrulanmadı; varsayılan kapalı** |
 
+### Görsel özellik galerisi
+
+| AR Studio | Ağ Güvenliği / Cyber SOC |
+|---|---|
+| ![Ti AR Studio sentetik görsel testi](ti_ai/assets/ti-ai-v2.3-ar-studio.png) | ![Ti Ağ Güvenliği ve Cyber SOC güvenli önizlemesi](ti_ai/assets/ti-ai-v2.3-cyber-soc.png) |
+
+AR görselindeki yüz/el noktaları ve Cyber SOC raporu açıkça işaretlenmiş sentetik
+önizlemelerdir. Gerçek çıkarım veya gerçek ağ taraması sonucu gibi sunulmazlar;
+ama uygulamanın çalışan arayüzünü ve mevcut kontrollerini gösterirler.
+
 ### Mimari
 
 ```text
