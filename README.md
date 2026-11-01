@@ -1,8 +1,19 @@
 # C301 AI Security Monitor
 
-[![Unit tests](https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml)
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
-![Status](https://img.shields.io/badge/status-demo%20%2F%20prototype-f59e0b)
+<p align="center">
+  <a href="README.md"><img alt="Türkçe README" src="https://img.shields.io/badge/README-T%C3%BCrk%C3%A7e-E30A17?style=for-the-badge"></a>
+  <a href="README_EN.md"><img alt="English README" src="https://img.shields.io/badge/README-English-2563EB?style=for-the-badge"></a>
+  <a href="#c301-çekirdek-demosu--hızlı-başlangıç"><img alt="Demoyu çalıştır" src="https://img.shields.io/badge/Demo-%C3%87al%C4%B1%C5%9Ft%C4%B1r-16A34A?style=for-the-badge"></a>
+  <a href="docs/ROADMAP.md"><img alt="Yol haritası" src="https://img.shields.io/badge/Yol%20Haritas%C4%B1-A%C3%A7-7C3AED?style=for-the-badge"></a>
+  <a href="docs/SECURITY.md"><img alt="Güvenlik" src="https://img.shields.io/badge/G%C3%BCvenlik-Politika-0F766E?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml"><img alt="Unit tests" src="https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml/badge.svg"></a>
+  <img alt="Python 3.11" src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white">
+  <img alt="Demo prototype" src="https://img.shields.io/badge/status-demo%20%2F%20prototype-f59e0b">
+  <img alt="Local first" src="https://img.shields.io/badge/privacy-local--first-111827">
+</p>
 
 > [!IMPORTANT]
 > **Bu depo tamamlanmış bir ürün değil, geliştirilmeye devam edilen bir
@@ -69,7 +80,9 @@ etmez.
 
 | AR Studio — gerçek parmak çizimi | Cyber SOC — anonimleştirilmiş gerçek test |
 |---|---|
-| ![Ti AR Studio canlı parmak çizimi](ti_ai/assets/ti-ai-v2.3-ar-live-drawing.png) | ![Ti Cyber SOC anonimleştirilmiş canlı test sonucu](ti_ai/assets/ti-ai-v2.3-cyber-soc-live-redacted.png) |
+| [![Ti AR Studio canlı parmak çizimi](ti_ai/assets/ti-ai-ar-live-demo.gif)](ti_ai/assets/ti-ai-v2.3-ar-live-drawing.png) | [![Ti Cyber SOC anonimleştirilmiş canlı test sonucu](ti_ai/assets/ti-ai-cyber-soc-demo.gif)](ti_ai/assets/ti-ai-v2.3-cyber-soc-live-redacted.png) |
+
+GIF'lere tıklayarak tam çözünürlüklü test karelerini açabilirsiniz.
 
 AR karesi gerçek C301 görüntüsünde MediaPipe el takibiyle parmak çiziminin
 çalıştığı anda alındı. Cyber SOC karesi ise izinli Wi-Fi adaptöründe yapılan
@@ -137,6 +150,28 @@ Kamera veya hesap olmadan gerçek arayüz açılır. C301 görüntüsü, motor v
    sonra normal kullanıma aday olacak.
 5. Temiz Windows kurulumu, paketleme ve veri saklama politikası tamamlanmadan
    `v1.0` ilan edilmeyecek.
+
+### Geliştirmeye açık alanlar
+
+Bu depo bir son ürün değil; yeni modüller ve daha güvenli entegrasyonlar için
+deney alanıdır. Planlanan veya katkıya açık başlıklar:
+
+- **Daha güçlü kişisel asistan:** tamamen yerel LLM seçeneği, izinli ve silinebilir
+  hafıza, daha doğal Türkçe konuşma ve bağlamlı takip soruları.
+- **Daha iyi güvenlik özeti:** açıklanabilir kural motoru, zaman içindeki değişimi
+  gösteren raporlar ve yalnız kullanıcının seçtiği bildirim kanalları.
+- **Çoklu kamera:** birden fazla yerel akış, kamera bazlı bölgeler ve ortak olay
+  zaman çizelgesi.
+- **AR ve erişilebilirlik:** yeni el hareketleri, daha kararlı çizim, klavye/ses
+  alternatifleri ve düşük donanım modu.
+- **Güvenli otomasyon:** Home Assistant gibi servislerde açık izinler, işlem
+  günlüğü, geri alma ve kritik eylemler için kullanıcı onayı.
+- **Paketleme ve test:** imzalı Windows paketi, temiz kurulum testi, uzun süreli
+  kamera dayanıklılık ölçümü ve farklı C301 yazılımlarında uyumluluk matrisi.
+
+Yeni bir özellik önerirken gizlilik varsayılanı, yerel çalışma, açık kullanıcı
+izni ve geri alınabilir eylemler korunmalıdır. Teknik hedefler ve mevcut sınırlar
+[yol haritasında](docs/ROADMAP.md) tutulur.
 
 ### Baştan bugüne ne yaptık?
 
