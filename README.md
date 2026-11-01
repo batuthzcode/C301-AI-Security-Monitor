@@ -1,16 +1,25 @@
 # C301 AI Security Monitor
 
+[![Unit tests](https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/batuthzcode/C301-AI-Security-Monitor/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Status](https://img.shields.io/badge/status-demo%20%2F%20prototype-f59e0b)
+
 > [!IMPORTANT]
 > **Bu depo tamamlanmış bir ürün değil, geliştirilmeye devam edilen bir
-> demo/prototiptir.** `v0.5.0-experimental`, bugüne kadar çalışan parçaları ve
-> deneyleri güvenli bir başlangıç noktası olarak bir araya getirir. Kararlı sürüm
+> demo/prototiptir.** C301 `v0.5.0-experimental` ve Ti AI `v2.3`, bugüne kadar
+> çalışan parçaları güvenli bir başlangıç noktası olarak bir araya getirir. Kararlı sürüm
 > hedefleri [yol haritasında](docs/ROADMAP.md) izlenir.
 
-## Demo durumu: v0.5.0-experimental
+![Ti AI v2.3 gerçek arayüzü; kamera bağlı değil](ti_ai/assets/ti-ai-v2.3-demo.png)
+
+## Proje durumu: C301 v0.5.0-experimental + Ti AI v2.3 demo
 
 Xiaomi Smart Camera C301 görüntüsünü Windows bilgisayarda yerel olarak işleyen;
 YOLO ile nesne algılayan, olay kaydı tutan ve deneysel **Ti** sesli asistanını
 çalıştıran bir prototiptir.
+
+Güncel PySide6 kontrol merkezi, kurulum betiği ve kişisel veriden arındırılmış
+kaynaklar: **[Ti AI v2.3 çalıştırılabilir demo](ti_ai/README.md)**.
 
 Güncel kod şunları içerir:
 
@@ -45,7 +54,7 @@ C301 ──► go2rtc ──► FFmpeg/OpenCV ──► YOLO ──► GUI + yer
   └── mikrofon ──► PCM ──► Whisper ──► Ti komut motoru
 ```
 
-### Güncel hızlı başlangıç
+### C301 çekirdek demosu — hızlı başlangıç
 
 ```powershell
 py -3.11 -m venv .venv
@@ -74,6 +83,19 @@ Ti için:
 kullanım için önerilmez; stok go2rtc'de bulunmayan deneysel bir yerel uç noktaya
 bağlıdır.
 
+### Ti AI v2.3 — hızlı başlangıç
+
+Windows 10/11 ve Python 3.11 üzerinde:
+
+```powershell
+cd ti_ai
+.\Kurulum.cmd
+.\Ti_Baslat.cmd
+```
+
+Kamera veya hesap olmadan gerçek arayüz açılır. C301 görüntüsü, motor ve hoparlör
+özellikleri için kullanıcının kendi yerel go2rtc yapılandırması gerekir.
+
 ### Bundan sonra nasıl geliştirilecek?
 
 1. Görüntü, yeniden bağlanma ve olay hattı gerçek C301 üzerinde uzun süreli
@@ -101,13 +123,6 @@ Tüm adımlar: [Geliştirme geçmişi](docs/HISTORY_TR.md) ·
 [Güvenlik](docs/SECURITY.md) · [Kaynak bütünlüğü](docs/INVENTORY_AUDIT.md) ·
 [Arındırılmış Ti AI devam notları](docs/TI_AI_PROJECT_CONTINUATION_2026-10-31.md) ·
 [Ti AI v2.3 çalıştırılabilir demo](ti_ai/README.md)
-
-### Ti AI v2.3 arayüzü
-
-Güncel, kişisel veriden arındırılmış PySide6 kaynakları `ti_ai/` klasöründedir.
-Kamera ve hesap gerekmeden açılan gerçek arayüzün demo görüntüsü:
-
-![Ti AI v2.3 gerçek arayüzü; kamera bağlı değil](ti_ai/assets/ti-ai-v2.3-demo.png)
 
 Gerçek `go2rtc.yaml`, Xiaomi hesabı/token'ı, cihaz kimliği, LAN bilgileri,
 kamera görüntüleri, ses kayıtları, model ağırlıkları ve binary dosyalar bu depoya
